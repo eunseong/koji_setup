@@ -26,7 +26,7 @@ Koji is comprised of several components:
   * kojira is a daemon that keeps the build root repodata updated.
 
 ## Koji - set up guide
-### DB setup
+### [PostgreSQL Server]
 koji can use postgresql as a DB.
 
 #### Configuration files
@@ -34,7 +34,7 @@ koji can use postgresql as a DB.
 * /var/lib/pgsql/data/postgresql.conf
 
 
-Let's install and configure a PostgreSQL server and prime the database which will be used to hold the koji users
+Let's install and configure a PostgreSQL server and prepare the database which will be used to hold the koji users
 ```shell
 root@localhost$ yum install postgresql-server koji
 root@localhost$ postgresql-setup initdb && systemctl start postgresql
@@ -78,18 +78,39 @@ listen_addresses = '*'
 #port = 5432
 ```
 
-Last, restart the database service
+and then restart the database service
 ```shell
 root@localhost$ systemctl enable postgresql --now
 root@localhost$ systemctl restart postgresql
 ```
-### koji-hub
+
+Now we need to add the initial admin user to the DB:
+```shell
+root@localhost$ su - koji;
+koji@localhost$ psql
+
+psql
+Type "help" for help.
+koji=> insert into users (name, status, usertype) values ('$ADMIN', 0, 0);
+koji=> insert into user_perms (user_id, perm_id, creator_id) values (1, 1, 1);
+```
+
+
+### [koji-hub]
+Install the koji-hub package along with mod_ssl
+```shell
+yum install koji-hub httpd mod_ssl
+```
+
 #### Configuration files
 * /etc/koji-hub/hub.conf
 * /etc/koji-hub/hub.conf.d/*
 * /etc/httpd/conf/httpd.conf
 * /etc/httpd/conf.d/kojihub.conf
 * /etc/httpd/conf.d/ssl.conf (when using ssl auth)
+
+
+
 ## koji CLI
 ## koji-web
 ## koji builder
