@@ -25,6 +25,18 @@ Koji is comprised of several components:
 * kojira
   * kojira is a daemon that keeps the build root repodata updated.
 
+## Prerequisites
+ssl config
+```shell
+# CN=koji.example.com -> the FQDN of your kojiweb server
+cd /etc/pki/koji/
+./certgen.sh kojiadmin # OU=kojiweb
+./certgen.sh kojiweb# OU=kojiweb
+./certgen.sh kojihub #OU=kojihub,CN=koji.example.com -> the FQDN of your kojihub server
+# OU=kojiweb,
+
+```
+
 ## Koji - set up guide
 ### [PostgreSQL Server]
 koji can use postgresql as a DB.
@@ -99,7 +111,7 @@ koji=> insert into user_perms (user_id, perm_id, creator_id) values (1, 1, 1);
 ### [koji-hub]
 Install the koji-hub package along with mod_ssl
 ```shell
-yum install koji-hub httpd mod_ssl
+root@localhost$ yum install koji-hub httpd mod_ssl
 ```
 
 #### Configuration files
