@@ -12,7 +12,7 @@ In Koji, it is sometimes necessary to distinguish between the a package in gener
 * RPM
   * A particular rpm. A specific arch and subpackage of a build. For example: kernel-2.6.9-34.EL.x86_64, kernel-devel-2.6.9-34.EL.s390, glibc-2.3.4-2.19.i686, glibc-common-2.3.4-2.19.ia64
 
-## koji components
+## Koji components
 Koji is comprised of several components:
 * koji-hub
   * koji-hub is the center of all Koji operations. It is an XML-RPC server running under mod_wsgi in Apache. koji-hub is passive in that it only receives XML-RPC calls and relies upon the build daemons and other components to initiate communication. koji-hub is the only component that has direct access to the database and is one of the two components that have write access to the file system.
@@ -24,12 +24,17 @@ Koji is comprised of several components:
   * kojid is the build daemon that runs on each of the build machines. Its primary responsibility is polling for incoming build requests and handling them accordingly. Koji also has support for tasks other than building. Creating install images is one example. kojid is responsible for handling these tasks as well.
 * kojira
   * kojira is a daemon that keeps the build root repodata updated.
+
 ## Koji - set up guide
-### koji-hub
+### DB setup
+koji can use postgresql as a DB.
+
+#### Configuration files
+* /var/lib/pgsql/data/pg_hba.conf
+* /var/lib/pgsql/data/postgresql.conf
 
 
-#### DB setup
-koji can use postgresql as a DB. Let's install and configure a PostgreSQL server and prime the database which will be used to hold the koji users
+Let's install and configure a PostgreSQL server and prime the database which will be used to hold the koji users
 ```shell
 root@localhost$ yum install postgresql-server koji
 root@localhost$ postgresql-setup initdb && systemctl start postgresql
@@ -78,7 +83,13 @@ Last, restart the database service
 root@localhost$ systemctl enable postgresql --now
 root@localhost$ systemctl restart postgresql
 ```
-
+### koji-hub
+#### Configuration files
+* /etc/koji-hub/hub.conf
+* /etc/koji-hub/hub.conf.d/*
+* /etc/httpd/conf/httpd.conf
+* /etc/httpd/conf.d/kojihub.conf
+* /etc/httpd/conf.d/ssl.conf (when using ssl auth)
 ## koji CLI
 ## koji-web
 ## koji builder
