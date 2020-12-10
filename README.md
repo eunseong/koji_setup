@@ -36,6 +36,8 @@ cd /etc/pki/koji/
 ./gen_cert.sh $ADMIN      #FQDN=$ADMIN
 ./gen_cert.sh kojiweb     #OUN=kojiweb
 ./gen_cert.sh kojihub     #OUN=kojihub
+./gen_cert.sh kojid       #OUN=kojid (buildhost filesystem)
+./gen_cert.sh kojira      #OUN=kojira
 ```
 
 ## Koji - set up guide
@@ -199,28 +201,28 @@ SSLVerifyDepth 10
 #### Preparing the koji filesystem skeleton
 We need to create a skeleton filesystem structure for koji as well as make the file area owned by apache so that the xmlrpc interface can write to it as needed.
 ```shell
-mkdir -p /mnt/koji/{packages,repos,work,scratch}
-chown -R apache:apache /mnt/koji/
-systemctl restart httpd
+root@kojidomain.tk$ mkdir -p /mnt/koji/{packages,repos,work,scratch}
+root@kojidomain.tk$ chown -R apache:apache /mnt/koji/
+root@kojidomain.tk$ systemctl restart httpd
 ```
 The root of the koji build directory(`/mnt/koji`) must be mounted on the builder. A Read-Only NFS mount is the easiest way to handle this.
 ```shell
-dnf install nfs-utils libnfsidmap
-firewall-cmd --permanent --add-port=80/tcp
-firewall-cmd --permanent --add-port=111/tcp
-firewall-cmd --permanent --add-port=443/tcp
-firewall-cmd --permanent --add-port=875/tcp
-firewall-cmd --permanent --add-port=2049/tcp
-firewall-cmd --permanent --add-port=5432/tcp
-firewall-cmd --permanent --add-port=8069/tcp
-firewall-cmd --permanent --add-port=20048/tcp
-firewall-cmd --permanent --add-port=42955/tcp
-firewall-cmd --permanent --add-port=46666/tcp
-firewall-cmd --permanent --add-port=51660/tcp
-firewall-cmd --permanent --add-port=54302/tcp
-firewall-cmd --reload && firewall-cmd --list-all
+root@{kojidomain.tk,kojibuilder.tk}$ dnf install nfs-utils libnfsidmap
+root@{kojidomain.tk,kojibuilder.tk}$ firewall-cmd --permanent --add-port=80/tcp &&
+> firewall-cmd --permanent --add-port=111/tcp &&
+> firewall-cmd --permanent --add-port=443/tcp &&
+> firewall-cmd --permanent --add-port=875/tcp &&
+> firewall-cmd --permanent --add-port=2049/tcp &&
+> firewall-cmd --permanent --add-port=5432/tcp &&
+> firewall-cmd --permanent --add-port=8069/tcp &&
+> firewall-cmd --permanent --add-port=20048/tcp &&
+> firewall-cmd --permanent --add-port=42955/tcp &&
+> firewall-cmd --permanent --add-port=46666/tcp &&
+> firewall-cmd --permanent --add-port=51660/tcp &&
+> firewall-cmd --permanent --add-port=54302/tcp
+root@{kojidomain.tk,kojibuilder.tk}$ firewall-cmd --reload && firewall-cmd --list-all
 
-mount -t nfs $FQDN:/mnt/koji /mnt/koji
+root@kojibuilder.tk$ mount -t nfs $FQDN:/mnt/koji /mnt/koji
 ```
 
 ### [koji-CLI]
@@ -260,12 +262,12 @@ plugins = runroot
 ```
 And the user-specific one is in ~/.koji/config.
 ```shell
-useradd $ADMIN && su $ADMIN
-mkdir ~/.koji
-cp /etc/pki/koji/${ADMIN}.pem ~/.koji/client.crt
-cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/clientca.crt
-cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/serverca.crt
-ln -s /etc/koji.conf ~/.koji/config
+root@kojidomain.tk$ useradd $ADMIN && su $ADMIN
+ADMIN@kojidomain.tk$ mkdir ~/.koji
+ADMIN@kojidomain.tk$ cp /etc/pki/koji/${ADMIN}.pem ~/.koji/client.crt
+ADMIN@kojidomain.tk$ cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/clientca.crt
+ADMIN@kojidomain.tk$ cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/serverca.crt
+ADMIN@kojidomain.tk$ ln -s /etc/koji.conf ~/.koji/config
 ```
 The following command will test your login to the hub:
 ```shell
@@ -277,5 +279,118 @@ Authenticated via client certificate /home/ADMIN/.koji/client.crt
 ```
 
 ### [koji-web]
+Install the koji-web package along with mod_ssl:
+```shell
+root@kojidomain$ yum install koji-web mod_ssl
+```
+You will need to edit the kojiweb configuration file `/etc/kojiweb/web.conf` to tell kojiweb which URLs it should use to access the hub, the koji packages and its own web interface. You will also need to tell kojiweb where it can find the SSL certificates for each of these components. If you are using SSL authentication, the “WebCert” line below must contain both the public and private key.
+```shell
+[web]
+SiteName = EL8-ProLinux-koji
+# KojiTheme = mytheme
+
+# Key urls
+KojiHubURL = http://kojidomain.tk/kojihub
+KojiFilesURL = http://kojidomain.tk/kojifiles
+kojiWebURL = http://kojidomain.tk/koji
+
+# Kerberos authentication options
+# WebPrincipal = koji/web@EXAMPLE.COM
+# WebKeytab = /etc/httpd.keytab
+# WebCCache = /var/tmp/kojiweb.ccache
+# The service name of the principal being used by the hub
+# KrbService = host
+
+# SSL authentication options
+WebCert = /etc/pki/koji/kojiweb.pem
+ClientCA = /etc/pki/koji/koji_ca_cert.crt
+KojiHubCA = /etc/pki/koji/koji_ca_cert.crt
+
+LoginTimeout = 72
+
+# This must be changed and uncommented before deployment
+Secret = superS3cret#
+
+LibPath = /usr/share/koji-web/lib
+...
+```
+#### Making Koji-Web look nice (optional)
+...
+
 ### [koji builder]
+The kojid service uses mock for creating pristine build environments and creates a fresh one for every build, ensuring that artifacts of build processes cannot contaminate each other. All of kojid is written in Python and communicates with koji-hub via XML-RPC.
+
+Install the koji-builder package
+```shell
+root@kojibuilder.tk$ yum install koji-builder
+```
+The configuration file `/etc/kojid/kojid.conf` for each koji builder must be edited so that the line below points to the URL for the koji hub. The user tag must also be edited to point to the username used to add the koji builder.
+```shell
+[kojid]
+...
+topdir=/mnt/koji
+...
+user=#buildhost domaion
+...
+workdir=/tmp/koji
+...
+; The vendor to use in rpm headers
+vendor=Tmax A&C Co., Ltd.
+...
+; The packager to use in rpm headers
+packager=Tmax A&C Co., Ltd. <https://technet.tmaxsoft.com/>
+...
+; The distribution to use in rpm headers
+distribution=TmaxA&C
+...
+; The _host string to use in mock
+mockhost=redhat-linux-gnu
+...
+; The URL for the xmlrpc server
+server=http://kojidomain.tk/kojihub
+...
+;client certificate
+cert = /etc/pki/koji/kojid.pem
+
+;certificate of the CA that issued the HTTP server certificate
+serverca = /etc/pki/koji/koji_ca_cert.crt
+ca = /etc/pki/koji/koji_ca_cert.crt
+...
+```
+#### Add the host entry for the koji builder to the database
+You will now need to add the koji builder to the database so that they can be utilized by koji hub. Make sure you do this before you start kojid for the first time, or you’ll need to manually remove entries from the sessions and users table before it can be run successfully.
+```shell
+ADMIN@kojidomain.tk$ koji add-host buildhost.tk x86_64
+ADMIN@kojidomain.tk$ koji add-host-to-channel buildhost.tk createrepo
+root@kojibuildhost.tk$ systemctl restart kojid
+```
+If its shown as "not ready", then check your logs in /var/logs/kojid.log
+
 ### [kojira]
+Install the koji-utils package
+```shell
+root@kojibuilder.tk$ yum install koji-utils
+```
+
+Set `/etc/kojira/kojira.conf`
+```shell
+...
+; The URL for the koji hub server
+server=http://kojidomain.tk/kojihub
+
+; The directory containing the repos/ directory
+topdir=/mnt/koji
+...
+;client certificate
+cert = /etc/pki/koji/kojira.pem
+
+;certificate of the CA that issued the client certificate
+ca = /etc/pki/koji/koji_ca_cert.crt
+...
+```
+
+The kojira user requires the repo permission to function.
+```shell
+ADMIN@kojidomain.tk$ koji add-user kojira
+ADMIN@kojidomain.tk$ koji grant-permission repo kojira
+```
