@@ -223,7 +223,7 @@ firewall-cmd --reload && firewall-cmd --list-all
 mount -t nfs $FQDN:/mnt/koji /mnt/koji
 ```
 
-## koji CLI
+### [koji-CLI]
 The koji cli is the standard client. It can perform most tasks and is essential to the successful use of any koji environment.
 The system-wide koji client configuration file is `/etc/koji.conf`.
 ```shell
@@ -276,6 +276,6 @@ You are using the hub at https://kojidomain.tk/kojihub
 Authenticated via client certificate /home/ADMIN/.koji/client.crt
 ```
 
-## koji-web
-## koji builder
-## kojira
+### [koji-web]
+### [koji builder]
+### [kojira]
