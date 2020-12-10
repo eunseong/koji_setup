@@ -33,7 +33,7 @@ https://github.com/eunseong/koji-ssl-certificate
 After setting the guide above, proceed to the next
 ```shell
 cd /etc/pki/koji/
-./gen_cert.sh kojiadmin   #FQDN=kojiadmin
+./gen_cert.sh $ADMIN      #FQDN=$ADMIN
 ./gen_cert.sh kojiweb     #OUN=kojiweb
 ./gen_cert.sh kojihub     #OUN=kojihub
 ```
@@ -225,7 +225,48 @@ mount -t nfs $FQDN:/mnt/koji /mnt/koji
 
 ## koji CLI
 The koji cli is the standard client. It can perform most tasks and is essential to the successful use of any koji environment.
-The system-wide koji client configuration file is `/etc/koji.conf`, and the user-specific one is in ~/.koji/config.
+The system-wide koji client configuration file is `/etc/koji.conf`.
+```shell
+[koji]
+;configuration for koji cli tool
+
+;url of XMLRPC server
+server = http://prolinux-koji-el8.tk/kojihub
+
+;url of web interface
+weburl = http://prolinux-koji-el8.tk/koji
+
+;url of package download site
+topurl = http://prolinux-koji-el8.tk/kojifiles
+
+;path to the koji top directory
+topdir = /mnt/koji
+
+; use the fast upload feature of koji by default
+use_fast_upload = yes
+
+;client certificate
+cert = ~/.koji/client.crt
+
+;certificate of the CA that issued the client certificate
+ca = ~/.koji/clientca.crt
+
+;certificate of the CA that issued the HTTP server certificate
+serverca = ~/.koji/serverca.crt
+
+;enabled plugins for CLI, runroot is enabled by deafult for fedora
+;save_failed_tree is available
+plugins = runroot
+```
+And the user-specific one is in ~/.koji/config.
+```shell
+useradd $ADMIN && su $ADMIN
+mkdir ~/.koji
+cp /etc/pki/koji/${ADMIN}.pem ~/.koji/client.crt
+cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/clientca.crt
+cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/serverca.crt
+ln -s /etc/koji.conf ~/.koji/config
+```
 
 ## koji-web
 ## koji builder
