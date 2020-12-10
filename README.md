@@ -49,21 +49,21 @@ koji can use postgresql as a DB.
 
 Let's install and configure a PostgreSQL server and prepare the database which will be used to hold the koji users
 ```shell
-root@localhost$ yum install postgresql-server koji
-root@localhost$ postgresql-setup initdb && systemctl start postgresql
+root@kojidomain.tk$ yum install postgresql-server koji
+root@kojidomain.tk$ postgresql-setup initdb && systemctl start postgresql
 
 # on EL7
-root@localhost$ useradd koji;passwd -d koji
+root@kojidomain.tk$ useradd koji;passwd -d koji
 
 # on EL8
-root@localhost$ postgresql-setup --initdb --unit postgresql
+root@kojidomain.tk$ postgresql-setup --initdb --unit postgresql
 ```
 then create the koji user and database within PostgreSQL and import koji schema using the provided file from the `koji` package
 ```shell
-root@localhost$ su postgres
-postgres@localhost$ createuser koji; createdb -O koji koji
-postgres@localhost$ su koji
-koji@localhost$ psql koji koji < /usr/share/doc/koji*/docs/schema.sql
+root@kojidomain.tk$ su postgres
+postgres@kojidomain.tk$ createuser koji; createdb -O koji koji
+postgres@kojidomain.tk$ su koji
+koji@kojidomain.tk$ psql koji koji < /usr/share/doc/koji*/docs/schema.sql
 ```
 
 1. Edit `/var/lib/pgsql/data/pg_hba.conf` to have the following contents
@@ -93,14 +93,14 @@ listen_addresses = '*'
 
 and then restart the database service
 ```shell
-root@localhost$ systemctl enable postgresql --now
-root@localhost$ systemctl restart postgresql
+root@kojidomain.tk$ systemctl enable postgresql --now
+root@kojidomain.tk$ systemctl restart postgresql
 ```
 
 Now we need to add the initial admin user to the DB:
 ```shell
-root@localhost$ su - koji;
-koji@localhost$ psql
+root@kojidomain.tk$ su - koji;
+koji@kojidomain.tk$ psql
 
 psql
 Type "help" for help.
@@ -112,7 +112,7 @@ koji=> insert into user_perms (user_id, perm_id, creator_id) values (1, 1, 1);
 ### [koji-hub]
 Install the koji-hub package along with mod_ssl
 ```shell
-root@localhost$ yum install koji-hub httpd mod_ssl
+root@kojidomain.tk$ yum install koji-hub httpd mod_ssl
 ```
 
 #### Configuration files
@@ -140,7 +140,7 @@ LoginCreatesUser = On
 KojiWebURL = http://#FQDN/koji
 ```
 #### /etc/httpd/conf/httpd.conf
-You’ll need to make /mnt/koji/ web-accessible, either here, on the hub, or on another web server altogether. Add "/mnt/koji" directory configuration
+You’ll need to make `/mnt/koji/` web-accessible, either here, on the hub, or on another web server altogether. Add `/mnt/koji` directory configuration
 ```shell
 #
 # Relax access to content within /var/www.
@@ -203,7 +203,7 @@ mkdir -p /mnt/koji/{packages,repos,work,scratch}
 chown -R apache:apache /mnt/koji/
 systemctl restart httpd
 ```
-The root of the koji build directory(/mnt/koji) must be mounted on the builder. A Read-Only NFS mount is the easiest way to handle this.
+The root of the koji build directory(`/mnt/koji`) must be mounted on the builder. A Read-Only NFS mount is the easiest way to handle this.
 ```shell
 dnf install nfs-utils libnfsidmap
 firewall-cmd --permanent --add-port=80/tcp
@@ -223,8 +223,10 @@ firewall-cmd --reload && firewall-cmd --list-all
 mount -t nfs $FQDN:/mnt/koji /mnt/koji
 ```
 
-
 ## koji CLI
+The koji cli is the standard client. It can perform most tasks and is essential to the successful use of any koji environment.
+The system-wide koji client configuration file is `/etc/koji.conf`, and the user-specific one is in ~/.koji/config.
+
 ## koji-web
 ## koji builder
 ## kojira
