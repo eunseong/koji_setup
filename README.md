@@ -26,15 +26,16 @@ Koji is comprised of several components:
   * kojira is a daemon that keeps the build root repodata updated.
 
 ## Prerequisites
-ssl config
-```shell
-# CN=koji.example.com -> the FQDN of your kojiweb server
-cd /etc/pki/koji/
-./certgen.sh kojiadmin # OU=kojiweb
-./certgen.sh kojiweb# OU=kojiweb
-./certgen.sh kojihub #OU=kojihub,CN=koji.example.com -> the FQDN of your kojihub server
-# OU=kojiweb,
+Koji primarily supports Kerberos and SSL Certificate authentication.
+We will be using SSL certificates for the xmlrpc server, for the various koji components, and one for the admin user will need to be setup. Let's get started setting up the Koji Root CA with the basic guide below.
+https://github.com/eunseong/koji-ssl-certificate
 
+After setting the guide above, proceed to the next
+```shell
+cd /etc/pki/koji/
+./certgen.sh kojiadmin #FQDN=kojiadmin
+./certgen.sh kojiweb #OUN=kojiweb
+./certgen.sh kojihub #OUN=kojihub
 ```
 
 ## Koji - set up guide
