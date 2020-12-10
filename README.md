@@ -120,8 +120,108 @@ root@localhost$ yum install koji-hub httpd mod_ssl
 * /etc/koji-hub/hub.conf.d/*
 * /etc/httpd/conf/httpd.conf
 * /etc/httpd/conf.d/kojihub.conf
-* /etc/httpd/conf.d/ssl.conf (when using ssl auth)
+* /etc/httpd/conf.d/ssl.conf
 
+
+#### /etc/koji-hub/hub.conf
+This file contains the configuration information for the hub. You will need to edit this configuration to point Koji Hub to the database you are using and to setup Koji Hub to utilize the authentication scheme you selected in the beginning.
+```shell
+## Basic options ##
+DBName = koji
+DBUser = koji
+DBHost = #FQDN=prolinux-koji.tk
+#DBPass = example_password
+KojiDir = /mnt/koji
+......
+DNUsernameComponent = CN
+ProxyDNs = /C=KO/ST=Gyeonggi/O=TmaxA&C/OU=kojiweb/CN=#FQDN
+......
+LoginCreatesUser = On
+KojiWebURL = http://#FQDN/koji
+```
+#### /etc/httpd/conf/httpd.conf
+You’ll need to make /mnt/koji/ web-accessible, either here, on the hub, or on another web server altogether. Add "/mnt/koji" directory configuration
+```shell
+#
+# Relax access to content within /var/www.
+#
+<Directory "/var/www">
+    AllowOverride None
+    # Allow open access:
+    Require all granted
+</Directory>
+...
+<Directory "/mnt/koji">
+    AllowOverride None
+    # Allow open access:
+    Order allow,deny
+    Allow from all
+    Require all granted
+</Directory>
+```
+
+#### /etc/httpd/conf.d/kojihub.conf
+Add below configuration
+```shell
+<Directory "/usr/share/koji-hub">
+    Options ExecCGI
+    SetHandler wsgi-script
+    WSGIApplicationGroup %{GLOBAL}
+    <IfVersion < 2.4>
+        Order allow,deny
+        Allow from all
+    </IfVersion>
+    <IfVersion >= 2.4>
+        Require all granted
+    </IfVersion>
+</Directory>
+
+# Also serve /mnt/koji
+Alias /kojifiles "/mnt/koji/"
+
+<Directory "/mnt/koji">
+    Options Indexes SymLinksIfOwnerMatch
+    AllowOverride None
+    Require all granted
+</Directory>
+```
+
+#### /etc/httpd/conf.d/ssl.conf
+The CA certificate you configure in SSLCACertificateFile here should be the same one that you use to issue user certificates.
+```shell
+SSLCertificateFile /etc/pki/koji/certs/kojihub.crt
+SSLCertificateKeyFile /etc/pki/koji/certs/kojihub.key
+SSLCertificateChainFile /etc/pki/koji/koji_ca_cert.crt
+SSLCACertificateFile /etc/pki/koji/koji_ca_cert.crt
+SSLVerifyClient require
+SSLVerifyDepth 10
+```
+#### Preparing the koji filesystem skeleton
+We need to create a skeleton filesystem structure for koji as well as make the file area owned by apache so that the xmlrpc interface can write to it as needed.
+```shell
+mkdir -p /mnt/koji/{packages,repos,work,scratch}
+chown -R apache:apache /mnt/koji/
+systemctl restart httpd
+```
+The root of the koji build directory(/mnt/koji) must be mounted on the builder. A Read-Only NFS mount is the easiest way to handle this.
+```shell
+dnf install nfs-utils libnfsidmap
+firewall-cmd --permanent --add-port=80/tcp
+firewall-cmd --permanent --add-port=111/tcp
+firewall-cmd --permanent --add-port=443/tcp
+firewall-cmd --permanent --add-port=875/tcp
+firewall-cmd --permanent --add-port=2049/tcp
+firewall-cmd --permanent --add-port=5432/tcp
+firewall-cmd --permanent --add-port=8069/tcp
+firewall-cmd --permanent --add-port=20048/tcp
+firewall-cmd --permanent --add-port=42955/tcp
+firewall-cmd --permanent --add-port=46666/tcp
+firewall-cmd --permanent --add-port=51660/tcp
+firewall-cmd --permanent --add-port=54302/tcp
+firewall-cmd --reload && firewall-cmd --list-all
+
+mount -t nfs $FQDN:/mnt/koji /mnt/koji
+```
 
 
 ## koji CLI
