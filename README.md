@@ -267,6 +267,14 @@ cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/clientca.crt
 cp /etc/pki/koji/koji_ca_cert.crt ~/.koji/serverca.crt
 ln -s /etc/koji.conf ~/.koji/config
 ```
+The following command will test your login to the hub:
+```shell
+ADMIN@kojidomain.tk$ koji hello
+dobre dan, ADMIN!
+
+You are using the hub at https://kojidomain.tk/kojihub
+Authenticated via client certificate /home/ADMIN/.koji/client.crt
+```
 
 ## koji-web
 ## koji builder
