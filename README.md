@@ -33,9 +33,9 @@ https://github.com/eunseong/koji-ssl-certificate
 After setting the guide above, proceed to the next
 ```shell
 cd /etc/pki/koji/
-./certgen.sh kojiadmin #FQDN=kojiadmin
-./certgen.sh kojiweb #OUN=kojiweb
-./certgen.sh kojihub #OUN=kojihub
+./gen_cert.sh kojiadmin   #FQDN=kojiadmin
+./gen_cert.sh kojiweb     #OUN=kojiweb
+./gen_cert.sh kojihub     #OUN=kojihub
 ```
 
 ## Koji - set up guide
