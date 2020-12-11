@@ -52,10 +52,10 @@ koji can use postgresql as a DB.
 Let's install and configure a PostgreSQL server and prepare the database which will be used to hold the koji users
 ```shell
 root@kojidomain.tk$ yum install postgresql-server koji
-root@kojidomain.tk$ postgresql-setup initdb && systemctl start postgresql
+root@kojidomain.tk$ useradd koji;passwd -d koji
 
 # on EL7
-root@kojidomain.tk$ useradd koji;passwd -d koji
+root@kojidomain.tk$ postgresql-setup initdb && systemctl start postgresql
 
 # on EL8
 root@kojidomain.tk$ postgresql-setup --initdb --unit postgresql
