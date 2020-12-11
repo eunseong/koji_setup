@@ -63,9 +63,10 @@ root@kojidomain.tk$ postgresql-setup --initdb --unit postgresql
 then create the koji user and database within PostgreSQL and import koji schema using the provided file from the `koji` package
 ```shell
 root@kojidomain.tk$ su postgres
-postgres@kojidomain.tk$ createuser koji; createdb -O koji koji
+postgres@kojidomain.tk$ createuser koji && createdb -O koji koji
 postgres@kojidomain.tk$ su koji
 koji@kojidomain.tk$ psql koji koji < /usr/share/doc/koji*/docs/schema.sql
+koji@kojidomain.tk$ exit
 ```
 
 1. Edit `/var/lib/pgsql/data/pg_hba.conf` to have the following contents
