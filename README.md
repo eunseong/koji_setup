@@ -33,11 +33,11 @@ https://github.com/eunseong/koji-ssl-certificate
 After setting the guide above, proceed to the next
 ```shell
 cd /etc/pki/koji/
-./gen_cert.sh $ADMIN      #FQDN=$ADMIN
-./gen_cert.sh kojiweb     #OUN=kojiweb
-./gen_cert.sh kojihub     #OUN=kojihub
-./gen_cert.sh kojid       #OUN=kojid (buildhost filesystem)
-./gen_cert.sh kojira      #OUN=kojira
+./gen_cert.sh $ADMIN      #commonName=$ADMIN
+./gen_cert.sh kojiweb     #OrganizationUnitName=kojiweb
+./gen_cert.sh kojihub     #OrganizationUnitName=kojihub
+./gen_cert.sh kojid       #OrganizationUnitName=kojid (buildhost filesystem)
+./gen_cert.sh kojira      #OrganizationUnitName=kojira
 ```
 
 ## Koji - set up guide
