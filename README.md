@@ -187,6 +187,13 @@ Alias /kojifiles "/mnt/koji/"
     AllowOverride None
     Require all granted
 </Directory>
+
+# uncomment this to enable authentication via SSL client certificates
+<Location /kojihub/ssllogin>
+    SSLVerifyClient require
+    SSLVerifyDepth  10
+    SSLOptions +StdEnvVars
+</Location>
 ```
 
 #### /etc/httpd/conf.d/ssl.conf
