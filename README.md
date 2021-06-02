@@ -36,7 +36,7 @@ cd /etc/pki/koji/
 ./gen_cert.sh $ADMIN      #commonName=$ADMIN
 ./gen_cert.sh kojiweb     #OrganizationUnitName=kojiweb
 ./gen_cert.sh kojihub     #OrganizationUnitName=kojihub
-./gen_cert.sh kojid       #OrganizationUnitName=kojid (buildhost filesystem)
+./gen_cert.sh kojid       #commonName=kojid (buildhost filesystem)
 ./gen_cert.sh kojira      #OrganizationUnitName=kojira
 ```
 
