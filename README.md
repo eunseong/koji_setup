@@ -402,3 +402,12 @@ The kojira user requires the repo permission to function.
 ADMIN@kojidomain.tk$ koji add-user kojira
 ADMIN@kojidomain.tk$ koji grant-permission repo kojira
 ```
+
+## Koji - set up guide
+### DB migration
+```
+# Export DB
+[root@src_hostname ~]# pg_dump --dbname=koji --host=127.0.0.1 --port=5432 --username=koji --password --format=p --file=./koji8DB.sql
+# Import DB
+[koji@target_hostname]$ psql "postgresql://koji:koji@127.0.0.1:5432/koji" -f ./kojiDB.sql
+```
