@@ -403,7 +403,7 @@ ADMIN@kojidomain.tk$ koji add-user kojira
 ADMIN@kojidomain.tk$ koji grant-permission repo kojira
 ```
 
-## Koji - set up guide
+## Koji - Cluster Migration
 ### DB migration
 ```
 # Export DB
