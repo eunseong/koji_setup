@@ -351,6 +351,7 @@ Alias /koji-static/images/open.png "/usr/share/koji-themes/navercloud-koji/image
     Order allow,deny
     Allow from all
     Require all grant
+</Directory>
 ```
 
 And then
