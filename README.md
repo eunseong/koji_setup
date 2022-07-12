@@ -324,7 +324,46 @@ LibPath = /usr/share/koji-web/lib
 ...
 ```
 #### Making Koji-Web look nice (optional)
-...
+```
+cat /etc/httpd/conf.d/kojitheme.conf
+#Override a few static items with our theme
+Alias /koji-static/images/koji.png "/usr/share/koji-themes/navercloud-koji/images/navercloud-koji.png"
+Alias /koji-static/images/powered-by-koji.png "/usr/share/koji-themes/navercloud-koji/images/Powered-by-koji_button.png"
+Alias /koji-static/images/koji.ico "/usr/share/koji-themes/navercloud-koji/images/navercloud-koji.ico"
+Alias /koji-static/koji.css "/usr/share/koji-themes/navercloud-koji/koji.css"
+Alias /koji-static/errors/unauthorized.html "/usr/share/koji-themes/navercloud-koji/errors/unauthorized.html"
+Alias /koji-static/images/header-bg.png "/usr/share/koji-themes/navercloud-koji/images/header-bg.png"
+Alias /koji-static/images/complete.png "/usr/share/koji-themes/navercloud-koji/images/tick.png"
+Alias /koji-static/images/yes.png "/usr/share/koji-themes/navercloud-koji/images/tick.png"
+Alias /koji-static/images/closed.png "/usr/share/koji-themes/navercloud-koji/images/tick.png"
+Alias /koji-static/images/ready.png "/usr/share/koji-themes/navercloud-koji/images/tick.png"
+Alias /koji-static/images/no.png "/usr/share/koji-themes/navercloud-koji/images/minus.png"
+Alias /koji-static/images/failed.png "/usr/share/koji-themes/navercloud-koji/images/minus.png"
+Alias /koji-static/images/building.png "/usr/share/koji-themes/navercloud-koji/images/spanner.png"
+Alias /koji-static/images/deleted.png "/usr/share/koji-themes/navercloud-koji/images/rubbishbin.png"
+Alias /koji-static/images/free.png "/usr/share/koji-themes/navercloud-koji/images/clock.png"
+Alias /koji-static/images/waiting.png "/usr/share/koji-themes/navercloud-koji/images/clock.png"
+Alias /koji-static/images/open.png "/usr/share/koji-themes/navercloud-koji/images/arrowcircle.png"
+
+<Directory "/usr/share/koji-themes/navercloud-koji">
+    AllowOverride None
+    # Allow open access:
+    Order allow,deny
+    Allow from all
+    Require all grant
+```
+
+And then
+
+```
+cd /usr/local/src
+git clone http://fedorapeople.org/cgit/ausil/public_git/koji-theme-fedora.git
+cp ./koji-theme-fedora/www/static/images/fedora-koji.png ./koji-theme-fedora/www/static/images/navercloud-koji.png 
+cp ./koji-theme-fedora/www/static/images/fedora-koji.ico ./koji-theme-fedora/www/static/images/navercloud-koji.ico
+mkdir -p /usr/share/koji-themes/navercloud-koji
+cp -r ./koji-theme-fedora/www/static /usr/share/koji-themes/navercloud-koji
+systemctl restart httpd
+````
 
 ### [koji builder]
 The kojid service uses mock for creating pristine build environments and creates a fresh one for every build, ensuring that artifacts of build processes cannot contaminate each other. All of kojid is written in Python and communicates with koji-hub via XML-RPC.
