@@ -64,7 +64,7 @@ then create the koji user and database within PostgreSQL and import koji schema 
 ```shell
 root@kojidomain.tk$ su postgres
 postgres@kojidomain.tk$ createuser koji && createdb -O koji koji
-postgres@kojidomain.tk$ su koji
+root@kojidomain.tk$ su koji
 koji@kojidomain.tk$ psql koji koji < /usr/share/doc/koji*/docs/schema.sql
 koji@kojidomain.tk$ exit
 ```
@@ -77,6 +77,7 @@ local     koji    apache              trust
 local     koji    koji                trust
 local     all     all                 ident
 # IPv4 local connections:
+host      koji    koji  0.0.0.0/0     trust
 host      koji    koji  127.0.0.1/32  trust
 host      all     all   127.0.0.1/32  ident
 # IPv6 local connections:
